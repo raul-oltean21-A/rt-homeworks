@@ -27,15 +27,28 @@ public class SporadicAlarmTask implements Runnable {
 
     @Override
     public void run() {
-        // TODO 2: implementați taskul sporadic:
-        //   - așteptați un eveniment: alarmEvents.take()
-        //   - dacă de la ultima eliberare au trecut mai puțin de
-        //     MIN_INTERARRIVAL_MS, respingeți evenimentul (afișați un mesaj)
-        //   - altfel publicați pe Config.alarmTopic(deviceId) mesajul
-        //     "deviceId;timestamp;temperatura;prag"
-        //     (pragul curent poate fi transmis împreună cu temperatura sau
-        //      citit din PeriodicTelemetryTask; alegeți și justificați în raport)
-        //
-        // Vezi exemplul exemple/01-taskuri/.../SporadicTaskExample.java
+        long lastReleaseTime = 0;
+
+        while (!Thread.currentThread().isInterrupted()) {
+            try {
+                Double temp = alarmEvents.take();
+                long currentTime = System.currentTimeMillis();
+
+                if (currentTime - lastReleaseTime >= MIN_INTERARRIVAL_MS) {
+
+                    String payload = String.format(java.util.Locale.US, "%s;%d;%.2f;28.0",
+                            deviceId, currentTime, temp);
+
+                    mqtt.publish(Config.alarmTopic(deviceId), payload);
+                    lastReleaseTime = currentTime; // Actualizăm timpul ultimei eliberări
+                } else {
+                    System.out.println("[" + deviceId + "] Alarma respinsă: a sosit prea repede (interval < 5s).");
+                }
+
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
     }
 }

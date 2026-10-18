@@ -37,14 +37,50 @@ public class AperiodicCommandTask implements Runnable {
 
     @Override
     public void run() {
-        // TODO 3: implementați taskul aperiodic:
-        //   - preluați comenzile din coadă: commands.take()
-        //   - separați numele comenzii de parametru: command.split(" ")
-        //   - executați comanda (periodic.setPeriodMs(...), sensor.reset() etc.)
-        //   - publicați confirmarea pe Config.statusTopic(deviceId)
-        //   - o comandă necunoscută sau un parametru invalid nu trebuie să
-        //     oprească taskul: publicați "ERROR <motiv>"
-        //
-        // Vezi exemplul exemple/01-taskuri/.../AperiodicTaskExample.java
+        while (!Thread.currentThread().isInterrupted()) {
+            try {
+                String cmd = commands.take();
+                long timestamp = System.currentTimeMillis();
+
+                String[] parts = cmd.split(" ");
+                String action = parts[0];
+                String responseText;
+
+                try {
+                    switch (action) {
+                        case "SET_INTERVAL":
+                            long newInterval = Long.parseLong(parts[1]);
+                            periodic.setPeriodMs(newInterval);
+                            responseText = "OK " + cmd;
+                            break;
+                        case "SET_THRESHOLD":
+                            double newThreshold = Double.parseDouble(parts[1]);
+                            periodic.setThreshold(newThreshold);
+                            responseText = "OK " + cmd;
+                            break;
+                        case "RESET":
+                            sensor.reset();
+                            responseText = "OK " + cmd;
+                            break;
+                        case "STATUS":
+                            responseText = String.format(java.util.Locale.US, "OK STATUS T=%d Prag=%.2f",
+                                    periodic.getPeriodMs(), periodic.getThreshold());
+                            break;
+                        default:
+                            responseText = "ERROR Comanda necunoscuta: " + action;
+                            break;
+                    }
+                } catch (Exception e) {
+                    responseText = "ERROR Parametri invalizi pentru comanda: " + cmd;
+                }
+
+                String payload = String.format(java.util.Locale.US, "%s;%d;%s", deviceId, timestamp, responseText);
+                mqtt.publish(Config.statusTopic(deviceId), payload);
+
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
     }
 }
