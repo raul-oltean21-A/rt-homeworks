@@ -17,7 +17,7 @@ const char* const BROKER_URI = "mqtt://control.aut.utcluj.ro:11188";
 // serverul de la care placa ia ora exactă (SNTP), pentru timestamp-uri
 const char* const NTP_SERVER = "pool.ntp.org";
 
-const char* const STUDENT = "popescu-ion";
+const char* const STUDENT = "Oltean-Raul";
 
 // ID-ul device-ului, folosit în topic-uri și în mesaje: "esp32-" urmat de
 // ultimele 6 cifre hexa ale adresei MAC a plăcii, de exemplu "esp32-a1b2c3".
@@ -25,7 +25,7 @@ const char* const STUDENT = "popescu-ion";
 extern const char* const DEVICE_ID;
 
 // Pinii plăcii ESP32-C3 Super Mini
-const int BUTTON_PIN = 9;  // butonul BOOT: LOW cât timp este apăsat (INPUT_PULLUP)
+const int BUTTON_PIN = 0;  // butonul BOOT: LOW cât timp este apăsat (INPUT_PULLUP)
 const int LED_PIN = 8;     // LED-ul albastru de pe placă: aprins pe LOW
 
 // Perioadele celor două taskuri periodice
